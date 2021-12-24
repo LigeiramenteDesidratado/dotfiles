@@ -1,0 +1,93 @@
+# System Maintainence
+alias sdn="sudo shutdown now"
+alias pac="pacman -Slq | fzf -m --preview 'pacman -Si {1}' | xargs -ro sudo pacman -S"
+alias ya="yay -Slq | fzf -m --preview 'yay -Si {1}' | xargs -ro yay -S"
+
+# Some aliases
+alias mkdir="mkdir -p"
+alias p="sudo pacman"
+alias SS="sudo systemctl"
+alias ss="sudo systemctl"
+alias v="$EDITOR"
+alias vlang="/usr/local/bin/v"
+alias vl="$EDITOR -u ~/.config/nvim/light.vim"
+alias sv="sudo $EDITOR"
+alias ka="killall"
+alias ref="source $HOME/.aliases"
+alias g="go run"
+alias mp="mpv --sub-font-size=35 "
+alias grep="grep --color=auto" # Color grep - highlight desired sequence.
+# alias ccat="highlight --out-format=ansi" # Color cat - print file with syntax highlighting.
+
+# Internet
+alias YT="youtube-dl --add-metadata --restrict-filenames -ic" # Download video link
+alias yta="YT -x -f bestaudio/best" # Download only audio
+alias yt="youtube-viewer -7"
+alias starwars="telnet towel.blinkenlights.nl"
+alias duo="/usr/lib/brave-dev-bin/brave --profile-directory=Default --app=https://www.duolingo.com/learn"
+alias yd="youtube-dl"
+
+# Adding color
+alias colors256='$EDITOR $HOME/256-colors'
+# alias l='clear && ls -ct -hNF --color=always --group-directories-first'
+alias l='clear && exa --colour=always --sort=changed  --group-directories-first'
+#  alias c="cd "$@" && l"
+# alias ll='clear && ls -tlhNG --group-directories-first --color=always'
+alias ll='clear && exa --sort=changed --group-directories-first --colour=always -lg'
+alias diff="diff --color"
+
+alias modrm="find . -name \"node_modules\" -type d -prune -exec rm -rf '{}' +"
+alias a="overkill"
+alias h="c ~/"
+alias D="c ~/Documents"
+alias d="c ~/Downloads"
+alias m="c /mnt"
+alias s="c ~/.local/bin/"
+alias rm="rm -I"
+alias cf="c ~/.config"
+alias .="c ."
+alias ..="c .."
+alias .2="c ../../".
+alias .3="c ../../../".
+alias .4="c ../../../../".
+alias lab="c $GOPATH/src/lab/"
+alias dmp="c $GOPATH/src/dmp/"
+alias dmplab="c $GOPATH/src/dmplab/"
+alias :q="exit"
+alias :Q="exit"
+alias :wq="exit"
+alias cfa="$EDITOR ~/.aliases"
+alias cfff="c $HOME/.config/fish"
+alias cff="$EDITOR $HOME/.config/fish/config.fish"
+alias cfc="$EDITOR ~/.scripts/configs"
+alias cfb="$EDITOR ~/.bashrc"
+alias cfz="$EDITOR ~/.zshrc"
+alias cfv="$EDITOR ~/.config/nvim/init.lua"
+alias vv="$EDITOR"
+alias cfp="$EDITOR ~/.profile"
+alias cfj="$EDITOR ~/.config/vifm/vifmrc"
+alias cfs="$EDITOR ~/.config/sxiv/exec/key-handler"
+alias cfi="$EDITOR ~/.config/sway/config"
+alias cfd="$EDITOR ~/.Xdefaults"
+alias cfu="$EDITOR ~/.config/newsboat/urls"
+alias cfn="$EDITOR ~/.config/newsboat/config"
+alias cfmb="$EDITOR ~/.config/ncmpcpp/bindings"
+alias cfmc="$EDITOR ~/.config/ncmpcpp/config"
+alias cfmpd="$EDITOR ~/.config/mpd/mpd.conf"
+alias cfM="$EDITOR ~/.config/mpd/mpd.conf"
+alias mk="make && sudo make install"
+alias gp="c $GOPATH"
+alias cfx="$EDITOR ~/.xinitrc"
+alias pr="sudo pacman -Rns"
+
+# git stuff
+alias gc="git checkout"
+alias ga="git add"
+alias gci="git commit -m"
+alias gs="git status"
+alias gm="git merge"
+alias gg="git push"
+
+# easter egg
+alias yaourt="yay"
+alias yougurt="yaourt"

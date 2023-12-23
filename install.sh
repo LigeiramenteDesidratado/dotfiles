@@ -9,6 +9,7 @@ ln -sf "$CURRENT_DIR/.xinitrc" "$HOME/"
 ln -sf "$CURRENT_DIR/.bashrc" "$HOME/"
 ln -sf "$CURRENT_DIR/.vimrc" "$HOME/"
 ln -sf "$CURRENT_DIR/.taskrc" "$HOME/"
+ln -sf "$CURRENT_DIR/.tmux.conf" "$HOME/"
 
 ln -sf "$CURRENT_DIR/.config/ncmpcpp" "$HOME/.config/"
 ln -sf "$CURRENT_DIR/.config/sxiv" "$HOME/.config/"

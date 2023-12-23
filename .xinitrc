@@ -2,20 +2,13 @@
 
 remaps&
 dunst&
-# mpd&
+mpd&
 unclutter&
-slstatus&
 rs&
 clipmenud&
+slstatus&
+rand-wallpaper&
 
-echo '' > $HOME/.isdwmrunning
-export YT_API_KEY=$(cat ~/.keys/yt-api-key)
+BUCKLESPRING_WAV_DIR=$HOME/git/bucklespring/wav/ buckle&
 
-while : ; do
-
-    #with logs
-    # dwm 2>&1 | sed -e "s/^/$(date '+[%Y-%m-%d] [%T]') /" >> ~/dwmlogs
-    exec dwm > /dev/null
-    [ -s "$HOME/.isdwmrunning" ] && break
-    sleep 1
-done
+exec dwm > /dev/null

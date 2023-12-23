@@ -1,3 +1,7 @@
+local opt = vim.opt
+local g = vim.g
+local set_keymap = vim.keymap.set
+
 local terminal = {}
 
 local TERMINAL_BUF_NAME = "Popup terminal"
@@ -28,10 +32,10 @@ local function open_bottom_split()
   -- Open a window and shove it to the bottom
   vim.cmd("split")
   vim.cmd("wincmd J")
-  vim.api.nvim_win_set_height(0, 12)
+  -- vim.api.nvim_win_set_height(0, 12)
 end
 
-function terminal.open_or_focus_term()
+local function open_or_focus_term()
   local terminal_buf = get_buf_by_name(TERMINAL_BUF_NAME)
   if terminal_buf == nil then
     -- We need to create a terminal buffer
@@ -39,7 +43,7 @@ function terminal.open_or_focus_term()
 
     vim.cmd("terminal")
     vim.cmd("set nobuflisted")
-    vim.o.signcolumn = "no"
+    -- vim.o.signcolumn = "no"
     vim.api.nvim_buf_set_name(0, TERMINAL_BUF_NAME)
   else
     local terminal_win = find_win_with_buf(terminal_buf)
@@ -83,27 +87,48 @@ function terminal.restore_term_win()
   local terminal_win = find_win_with_buf(terminal_buf)
   if terminal_win == nil then return end
 
-  vim.api.nvim_win_set_height(terminal_win, last_term_win_size)
+  if last_term_win_size ~= nil then
+    vim.api.nvim_win_set_height(terminal_win, last_term_win_size)
+  end
 end
 
 -- }}}
 
+local function build_command()
+
+  open_or_focus_term()
+  local terminal_buf = get_buf_by_name(TERMINAL_BUF_NAME)
+
+  vim.api.nvim_chan_send(terminal_buf, "cmake --build build --target world3D -j 2\r")
+end
+
+local function run_command()
+
+  open_or_focus_term()
+  local terminal_buf = get_buf_by_name(TERMINAL_BUF_NAME)
+
+  vim.api.nvim_chan_send(terminal_buf, "./build/TestSites/world3D/world3D\r")
+end
 
 function terminal.init_config()
 
-  local opts = { noremap=true, silent=true }
-  set_keymap('n', "<leader>tt", ":lua require('terminal').open_or_focus_term()<CR>", opts)
+  local opts = { noremap = true, silent = true }
+  set_keymap('n', "<leader>t", open_or_focus_term, opts)
+  set_keymap('n', "<leader>m", build_command, opts)
+  set_keymap('n', "<leader>e", run_command, opts)
 
-  set_keymap('t', '<leader>tt', "<C-\\><C-n>:lua require('terminal').hide_term()<CR>", opts)
+  set_keymap('t', '<leader>t', "<C-\\><C-n>:lua require('terminal').hide_term()<CR>", opts)
   set_keymap('t', 'jk', '<C-\\><C-n>', opts)
   set_keymap('t', '<C-w>k', '<C-\\><C-n><C-w>k', opts)
   set_keymap('t', '<C-w>j', '<C-\\><C-n><C-w>j', opts)
   set_keymap('t', '<C-w>l', '<C-\\><C-n><C-w>l', opts)
   set_keymap('t', '<C-w>h', '<C-\\><C-n><C-w>h', opts)
 
-  vim.cmd[[augroup TerminalG
+
+
+  -- autocmd QuitPre * <cmd>lua require('terminal').same_term_win
+  vim.cmd [[augroup TerminalG
   autocmd!
-  autocmd QuitPre * <cmd>lua require('terminal').same_term_win
   autocmd WinClosed * lua vim.schedule(require('terminal').restore_term_win)
   autocmd TermOpen * setlocal statusline=%#HLBracketsST#[%#HLTextST#%f%#HLBracketsST#]
   augroup END

@@ -1,12 +1,20 @@
 export TERMINAL=/usr/local/bin/st
-export EDITOR=nvim
-export BROWSER=firefox-developer-edition
+export EDITOR="nvim --noplugin"
+export BROWSER=brave
 export READER=/usr/bin/zathura
 export TERM=st-256color
 export COLORTERM=24bit
+export WALLCMD="/usr/bin/xwallpaper --daemon --zoom "
 
-export PATH=$PATH:$HOME/.local/bin/:$HOME/.cargo/bin:$HOME/.local/bin/cron:$HOME/.yarn/bin/
-#
+# stop gdb from downloading debug info
+# unset DEBUGINFOD_URLS
+
+# golang home and bin dir
+export GOPATH=$HOME/dev/golang
+export GOBIN=$GOPATH/bin
+
+export PATH=$PATH:$GOPATH:$GOBIN:$HOME/.local/bin/:$HOME/.local/bin/cron:$HOME/.cargo/bin
+
 # AUTOCOMPLETION
   
 # initialize autocompletion
@@ -49,11 +57,16 @@ setprompt() {
 }
 setprompt
 
-source .aliases
+source $HOME/.aliases
 
-function c {
-    builtin cd "$@" && clear && l
+# function c {
+#     builtin cd "$@" && clear && l
+# }
+function list_all() {
+  emulate -L zsh
+  l
 }
+chpwd_functions=(${chpwd_functions[@]} "list_all")
 
 function fman() {
     man -k . | fzf -q "$1" --prompt='man> '  --preview $'echo {} | tr -d \'()\' | awk \'{printf "%s ", $2} {print $1}\' | xargs -r man' | tr -d '()' | awk '{printf "%s ", $2} {print $1}' | xargs -r man
@@ -97,7 +110,7 @@ export FZF_DEFAULT_COMMAND="rg --files --no-messages --no-ignore --no-ignore-vcs
 export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude ".git"'
 export FZF_ALT_C_OPTS=""
 export FZF_COMPLETION_TRIGGER=",,"
-export FZF_COMPLETION_DIR_COMMANDS="c cd rmdir pushd"
+export FZF_COMPLETION_DIR_COMMANDS="cd rmdir pushd"
 bindkey '^j' fzf-cd-widget
 
 # Use fd (https://github.com/sharkdp/fd) instead of the default find
@@ -121,7 +134,7 @@ _fzf_comprun() {
   shift
 
   case "$command" in
-    cd|c)         fzf "$@" --preview 'tree -C {} | head -200' ;;
+    cd)           fzf "$@" --preview 'tree -C {} | head -200' ;;
     export|unset) fzf "$@" --preview "eval 'echo \$'{}" ;;
     ssh)          fzf "$@" --preview 'dig {}' ;;
     *)            fzf "$@" ;;

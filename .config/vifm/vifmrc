@@ -12,7 +12,7 @@
 " you will need to change this setting.
 only
 
-set vicmd=$EDITOR
+set vicmd=nvim\ --noplugin
 " set vicmd=elvis\ -G\ termcap
 " set vicmd=vile
 set shell=/bin/dash
@@ -65,7 +65,7 @@ set norunexec
 
 " Selected color scheme
 
-colorscheme ls
+colorscheme ansa
 
 " Format for displaying time in file list. For example:
 " TIME_STAMP_FORMAT=%m/%d-%H:%M
@@ -147,9 +147,6 @@ command! make !!make %a
 command! mkcd :mkdir %a | cd %a
 command! vgrep $EDITOR "+grep %a"
 command! reload :write | restart
-command! a sxiv -tbaq %d > /dev/null 2>&1 &
-command! A sxiv -tbarq %d > /dev/null 2>&1 &
-command! o $HOME/.local/bin/video-thumbnailer && sxiv -ptbaq %d %d/.thumb__ &
 " ------------------------------------------------------------------------------
 
 " The file type is for the default programs to be used with
@@ -244,7 +241,7 @@ filetype *.[1-8] man ./%c
 fileviewer *.[1-8] man ./%c | col -b
 
 " Images
-filextype *.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm
+filextype *.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm,*.webp
         \ {View in sxiv}
         \ sxiv -abq %f&,
         \ {View in gpicview}
@@ -411,9 +408,9 @@ set vifminfo=dhistory,savedirs,chistory,state,tui,shistory,
 " ------------------------------------------------------------------------------
 
 " Sample mappings
-nnoremap go :a<cr>
-nnoremap gp :o<cr>
-nnoremap gO :A<cr>
+nnoremap ,o :! sxiv -tbaq %d > /dev/null 2>&1 &<cr>
+nnoremap ,p :! $HOME/.local/bin/video-thumbnailer && sxiv -ptbaq %d %d/.thumb__ &<cr>
+nnoremap ,O :! sxiv -tbarq %d > /dev/null 2>&1 &<cr>
 
 " Start shell in current directory
 nnoremap s :shell<cr>
@@ -454,6 +451,9 @@ nnoremap ,C :!$EDITOR --remote-tab-silent $MYVIFMRC &<cr>
 " Toggle wrap setting on ,w key
 nnoremap ,w :set wrap!<cr>
 
+" Drag and drop
+nnoremap ,d :!dragon-drop %c&<CR>
+
 " Example of standard two-panel file managers mappings
 nnoremap <f3> :!less %f<cr>
 nnoremap <f4> :edit<cr>
@@ -487,6 +487,16 @@ nnoremap <f8> :delete<cr>
 "
 " let $VIFM_SERVER_NAME = v:servername
 
+command! FZFfind : set noquickview
+                \| let $FZF_PICK = term('eval $FZF_DEFAULT_COMMAND | fzf --height 10 2>/dev/tty')
+                \| if $FZF_PICK != ''
+                \|     execute 'goto' fnameescape($FZF_PICK)
+                \| endif
+
+nnoremap <c-t> :FZFfind<cr>
+
+
+
 " file types
 set classify=' :dir:/,  :exe:,  :reg:,  :link:,? :?:,  ::../::'
 
@@ -513,7 +523,7 @@ set classify+=' ::*.php::'
 set classify+=' ::*.markdown,,*.md::'
 set classify+=' ::*.json::'
 set classify+=' ::*.js::'
-set classify+=' ::*.bmp,,*.gif,,*.ico,,*.jpeg,,*.jpg,,*.png,,*.svg,,*.svgz,,*.tga,,*.tiff,,*.xmb,,*.xcf,,*.xpm,,*.xspf,,*.xwd,,*.cr2,,*.dng,,*.3fr,,*.ari,,*.arw,,*.bay,,*.crw,,*.cr3,,*.cap,,*.data,,*.dcs,,*.dcr,,*drf,,*.eip,,*.erf,,*.fff,,*.gpr,,*.iiq,,*.k25,,*.kdc,,*.mdc,,.*mef,,*.mos,,.*.mrw,,.*.obm,,*.orf,,*.pef,,*.ptx,,*.pxn,,*.r3d,,*.raf,,*.raw,,*.rwl,,*.rw2,,*.rwz,,*.sr2,,*.srf,,*.srf,,*.srw,,*.tif,,*.x3f::'
+set classify+=' ::*.bmp,,*.gif,,*.ico,,*.jpeg,,*.jpg,,*.png,,*.svg,,*.svgz,,*.tga,,*.tiff,,*.xmb,,*.xcf,,*.xpm,,*.xspf,,*.xwd,,*.cr2,,*.dng,,*.3fr,,*.ari,,*.arw,,*.bay,,*.crw,,*.cr3,,*.cap,,*.data,,*.dcs,,*.dcr,,*drf,,*.eip,,*.erf,,*.fff,,*.gpr,,*.iiq,,*.k25,,*.kdc,,*.mdc,,.*mef,,*.mos,,.*.mrw,,.*.obm,,*.orf,,*.pef,,*.ptx,,*.pxn,,*.r3d,,*.raf,,*.raw,,*.rwl,,*.rw2,,*.rwz,,*.sr2,,*.srf,,*.srf,,*.srw,,*.tif,,*.webp,,*.x3f::'
 set classify+=' ::*.ejs,,*.htm,,*.html,,*.slim,,*.xml::'
 set classify+=' ::*.mustasche::'
 set classify+=' ::*.torrent::'

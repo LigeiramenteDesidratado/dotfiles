@@ -1,0 +1,32 @@
+#!/bin/sh
+
+while read -r file
+
+do
+
+    filename=$(basename "$file")
+
+    case "$1" in
+    "d")
+        dragon-drop "$file" ;;
+        # rm "$file" && notify-send "Deleted file" "$file" ;;
+
+    "p")
+        db="$PWD/.thumb__/.dbthumb__"
+        vidFile=$(grep "$filename" < "$db" | sed -r 's/.{45}//')
+        mpv "$vidFile" > /dev/null 2>&1 &
+        ;;
+    "w")
+        postFix=$(echo "${filename}" | sed -r 's/.*(.{4})/\1/')
+        if [ "$postFix" = '.gif' ]
+        then
+            killall -w xwinwrap > /dev/null 2>&1 &
+            notify-send "Setting Background" "$filename"
+            wallgif "$file" > /dev/null 2>&1 &
+        else
+            killall -w xwinwrap > /dev/null 2>&1 &
+            notify-send "Setting Background" "$filename"
+            eval "$WALLCMD $file" > /dev/null 2>&1 &
+        fi;;
+esac
+done

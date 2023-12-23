@@ -1,7 +1,7 @@
 vim.cmd[[augroup StatusLineColor
   autocmd!
-  autocmd Colorscheme * hi HLBracketsST ctermfg=14 ctermbg=234 guifg=#85dc85  guibg=#1c1c1c
-  autocmd Colorscheme * hi HLTextST ctermfg=14 ctermbg=234 guifg=#eeeeee  guibg=#303030
+  autocmd Colorscheme * hi HLBracketsST ctermfg=243 ctermbg=234 guifg=#85dc85  guibg=#1c1c1c
+  autocmd Colorscheme * hi HLTextST ctermfg=243 ctermbg=234 guifg=#eeeeee  guibg=#303030
 augroup END
 ]]
 
@@ -19,4 +19,5 @@ statusline = statusline .. " [COL:%#HLTextST#%-2c%#HLBracketsST#]"
 statusline = statusline .. " [%#HLTextST#%-3p%#HLBracketsST#%%] "
 
 vim.opt.statusline = statusline
+vim.opt.laststatus = 3
 

@@ -1,0 +1,53 @@
+"
+" Ansa theme for vifm
+"
+hi clear
+
+" UI elements
+hi Border        cterm=none      ctermfg=235       ctermbg=0
+hi CmdLine       cterm=none      ctermfg=250       ctermbg=0
+hi CurrLine      cterm=none      ctermfg=160       ctermbg=234
+hi ErrorMsg      cterm=italic    ctermfg=9         ctermbg=52
+hi JobLine       cterm=none      ctermfg=220       ctermbg=1
+hi LineNr        cterm=none      ctermfg=237       ctermbg=0
+hi OtherLine     cterm=none      ctermfg=default   ctermbg=234
+hi Selected      cterm=none      ctermfg=default   ctermbg=17
+hi StatusLine    cterm=none      ctermfg=243       ctermbg=235
+hi SuggestBox    cterm=none      ctermfg=243       ctermbg=0
+hi TopLine       cterm=none      ctermfg=239       ctermbg=235
+hi TopLineSel    cterm=none      ctermfg=248       ctermbg=235
+hi WildMenu      cterm=none      ctermfg=254       ctermbg=237
+hi Win           cterm=none      ctermfg=249       ctermbg=0
+
+" Filetypes
+hi BrokenLink    cterm=italic    ctermfg=9         ctermbg=52
+hi CmpMismatch   cterm=italic    ctermfg=9         ctermbg=52
+hi Device        cterm=italic    ctermfg=1         ctermbg=default
+hi Directory     cterm=none      ctermfg=12        ctermbg=default
+hi Executable    cterm=none      ctermfg=2         ctermbg=default
+hi Fifo          cterm=italic    ctermfg=14        ctermbg=default
+hi HardLink      cterm=bold      ctermfg=3         ctermbg=default
+hi Link          cterm=italic    ctermfg=3         ctermbg=default
+hi Socket        cterm=italic    ctermfg=13        ctermbg=default
+
+if $USER == 'root'
+    hi StatusLine ctermbg=52 ctermfg=248
+    hi TopLineSel ctermbg=52 ctermfg=252
+    hi TopLine    ctermbg=52 ctermfg=245
+endif
+
+
+" file name specific highlight
+highlight /^.*\.(aac|au|flac|m4a|mid|midi|mka|mp3|mpc|oga|ogg|opus|ra|spx|wav|xspf)$/I cterm=none ctermfg=cyan ctermbg=default
+
+highlight /^.*\.(7z|ace|alz|arc|arj|bz|bz2|cab|cpio|deb|dwm|dz|ear|esd|gz|jar|lha|lrz|lz|lz4|lzh|lzma|lzo|rar|rpm|rz|sar|swm|t7z|tar|taz|tbz|tbz2|tgz|tlz|txz|tz|tzo|tzst|war|wim|xz|z|zip|zoo|zst)$/I cterm=none ctermfg=red ctermbg=default
+
+highlight /^.*\.(bmp|gif|jpeg|jpg|mjpeg|mjpg|png|svg|tga|tif|tiff|)$/I cterm=none ctermfg=magenta ctermbg=default
+
+highlight /^.*\.(avi|flv|m2v|m4v|mjpeg|mkv|mov|mp4|mp4v|mpeg|mpg|webm|wmv)$/I cterm=none ctermfg=184 ctermbg=default
+
+highlight /^.*\.(pdf|djvu|epub)$/I cterm=none ctermfg=97 ctermbg=default
+
+highlight /(README.md|README.txt|README|CMakeLists.txt|LICENSE|Makefile)/I cterm=underline ctermfg=202 ctermbg=default
+
+finish

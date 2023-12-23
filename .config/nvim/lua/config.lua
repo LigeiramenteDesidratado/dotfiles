@@ -1,332 +1,504 @@
+local opt = vim.opt
+local g = vim.g
+local set_keymap = vim.keymap.set
+
 local nvim_lsp = require('lspconfig')
+
+vim.cmd [[augroup StatusLineColor
+  autocmd!
+  autocmd Colorscheme * hi HLBracketsST ctermfg=243 ctermbg=234 guifg=#85dc85  guibg=#1c1c1c
+  autocmd Colorscheme * hi HLTextST ctermfg=243 ctermbg=234 guifg=#eeeeee  guibg=#303030
+augroup END
+]]
+
+-- Statusline Modifications
+local statusline = "%#HLTextST# [%Y] %f %= R:%-3l C:%-2c %-2p%%"
+
+vim.opt.statusline = statusline
+vim.opt.laststatus = 3
+
+
+local aug = vim.api.nvim_create_augroup("buf_large", { clear = true })
+
+vim.api.nvim_create_autocmd({ "BufReadPre" }, {
+	callback = function()
+		local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()))
+		if ok and stats and (stats.size > 1000000) then
+			vim.b.large_buf = true
+			vim.cmd("syntax off")
+			vim.opt_local.foldmethod = "manual"
+			vim.opt_local.spell = false
+		else
+			vim.b.large_buf = false
+		end
+	end,
+	group = aug,
+	pattern = "*",
+})
+
+
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
 local on_attach = function(client, bufnr)
-  local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-  local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+	local opts = { noremap = true, silent = true, buffer = bufnr }
 
-  -- See `:help vim.lsp.*` for documentation on any of the below functions
-  buf_set_keymap('n', '<leader>gd', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-  buf_set_keymap('n', '<leader>ge', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
-  buf_set_keymap('n', '<leader>d', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-  buf_set_keymap('n', '<leader>gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-  -- buf_set_keymap('n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
-  buf_set_keymap('n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-  buf_set_keymap('n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-  buf_set_keymap('n', '<leader>gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-  buf_set_keymap('n', "<leader>ld", '<cmd>lua vim.lsp.buf.document_symbol()<CR>', opts)
-  buf_set_keymap('n', '<leader>e', '<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts)
-  buf_set_keymap('n', '<C-s>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
-  buf_set_keymap('i', '<C-s>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
-  buf_set_keymap('n', '<C-[>', '<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>', opts)
-  buf_set_keymap('n', '<C-]>', '<cmd>lua vim.lsp.diagnostic.goto_next()<CR>', opts)
+	vim.keymap.set('n', '<leader>gd', vim.lsp.buf.declaration, opts)
+	vim.keymap.set('n', '<leader>ge', vim.lsp.buf.definition, opts)
+	vim.keymap.set('n', '<leader>d', vim.lsp.buf.hover, opts)
+	vim.keymap.set('n', '<leader>gi', vim.lsp.buf.implementation, opts)
+	vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, opts)
+	vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+	vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+	vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, opts)
+	-- vim.keymap.set('n', "<leader>q", vim.lsp.buf.document_symbol, opts)
+	-- vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
+	vim.keymap.set('n', '<C-N>', vim.diagnostic.goto_prev, opts)
+	vim.keymap.set('n', '<C-n>', vim.diagnostic.goto_next, opts)
+	vim.keymap.set('n', '<C-s>', vim.lsp.buf.signature_help, opts)
+	vim.keymap.set('i', '<C-s>', vim.lsp.buf.signature_help, opts)
+	vim.keymap.set('n', '<leader>=', vim.lsp.buf.format, opts)
 
-  -- Set some keybinds conditional on server capabilities
-  if client.resolved_capabilities.document_formatting then
-    buf_set_keymap('n', '<leader>=', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
-  elseif client.resolved_capabilities.document_range_formatting then
-    buf_set_keymap('n', '<leader>=', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
-  end
+	vim.keymap.set('n', '<leader>\\', vim.lsp.buf.document_highlight, opts)
+	vim.keymap.set('n', "<leader>,", ":noh<CR>:lua vim.lsp.buf.clear_references()<CR>", opts)
 
- -- Set autocommands conditional on server_capabilities
-  if client.resolved_capabilities.document_highlight then
-    vim.cmd [[
-      augroup lsp_document_highlight
-        autocmd! * <buffer>
-        autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
-        autocmd CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()
-        autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
-      augroup END
-    ]]
-  end
-
-  if client.resolved_capabilities.code_lens then
-    vim.cmd [[
-      augroup lsp_document_codelens
-        au! * <buffer>
-        autocmd BufWritePost,CursorHold <buffer> lua vim.lsp.codelens.refresh()
-      augroup END
-    ]]
-  end
+	if client.resolved_capabilities and client.resolved_capabilities.document_highlight then
+		vim.cmd [[
+		augroup lsp_document_highlight
+		autocmd! * <buffer>
+		autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
+		autocmd CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()
+		autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
+		augroup END
+		]]
+	end
 
 
-  vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
-  vim.lsp.diagnostic.on_publish_diagnostics, {
-    underline = true,
-    update_in_insert = false,
+	vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+		vim.lsp.diagnostic.on_publish_diagnostics, {
+			underline = true,
+			update_in_insert = false,
+			-- Disable virtual_text
+			-- virtual_text = false,
+			-- Enable virtual text, override spacing to 4
+			virtual_text = {
+				spacing = 1,
+				prefix = '~',
+			},
+			-- Use a function to dynamically turn signs off
+			-- and on, using buffer local variables
+			signs = function(buffer_n, _)
+				local ok, result = pcall(vim.api.nvim_buf_get_var, buffer_n, 'show_signs')
+				-- No buffer local variable set, so just enable by default
+				if not ok then
+					return true
+				end
 
-    -- Enable virtual text, override spacing to 4
-    virtual_text = {
-      spacing = 1,
-      prefix = '~',
-    },
-    -- Use a function to dynamically turn signs off
-    -- and on, using buffer local variables
-    signs = function(bufnr, _)
-      local ok, result = pcall(vim.api.nvim_buf_get_var, bufnr, 'show_signs')
-      -- No buffer local variable set, so just enable by default
-      if not ok then
-        return true
-      end
-
-      return result
-    end,
-  })
-
+				return result
+			end,
+		})
 end
+
 
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
 
- local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
-nvim_lsp.clangd.setup ({
-  ["cmd"] = { 'clangd', '--background-index', '--header-insertion=iwyu' },
-   capabilities = capabilities,
-  on_attach = on_attach,
-  flags = {
-    debounce_text_changes = 150,
-  }
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+
+
+local function setup_lsp(server, opts)
+	local conf = nvim_lsp[server]
+	conf.setup(opts)
+	local try_add = conf.manager.try_add
+	conf.manager.try_add = function(bufnr)
+		if not vim.b.large_buf then
+			return try_add(bufnr)
+		end
+	end
+end
+
+setup_lsp(
+	"clangd",
+	{
+		on_attach = on_attach,
+		capabilities = capabilities,
+		["cmd"] = { 'clangd', '--background-index', "--clang-tidy",
+			"--background-index-priority=background",
+			"--suggest-missing-includes",
+			"--inlay-hints",
+			"--header-insertion=never",
+			"--cross-file-rename",
+			"--completion-style=bundled", }
+	}
+)
+
+nvim_lsp.lua_ls.setup({
+	cmd = { 'lua-language-server' },
+	-- An example of settings for an LSP server.
+	--    For more options, see nvim-lspconfig
+	settings = {
+		Lua = {
+			telemetry = { enable = false },
+			runtime = {
+				-- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+				version = 'LuaJIT',
+				-- Setup your lua path
+				path = vim.split(package.path, ';'),
+			},
+			diagnostics = {
+				-- Get the language server to recognize the `vim` global
+				globals = { 'vim' },
+			},
+			workspace = {
+				-- Make the server aware of Neovim runtime files
+				library = {
+					[vim.fn.expand('$VIMRUNTIME/lua')] = true,
+					[vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true,
+				},
+			},
+		}
+	},
+	capabilities = capabilities,
+	on_attach = on_attach,
 })
 
-vim.o.completeopt = "menuone,noselect"
-
-require('nvim-autopairs').setup()
-local cmp_autopairs = require('nvim-autopairs.completion.cmp')
-
-local cmp = require'cmp'
-
--- require("nvim-autopairs.completion.cmp").setup({
---   map_cr = true, --  map <CR> on insert mode
---   map_complete = true -- it will auto insert `(` after select function or method item
--- })
-cmp.event:on( 'confirm_done', cmp_autopairs.on_confirm_done({  map_char = { tex = '' } }))
-cmp.setup({
-  completion = {
-    autocomplete = false
-  },
-  formatting = {
-    format = function(entry, vim_item)
-      vim_item.abbr = string.sub(vim_item.abbr, 1, 40)
-      return vim_item
-    end
-  },
-  snippet = {
-    expand = function(args)
-       vim.fn["vsnip#anonymous"](args.body) -- For `vsnip` users.
-      -- require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
-      -- vim.fn["UltiSnips#Anon"](args.body) -- For `ultisnips` users.
-      -- require'snippy'.expand_snippet(args.body) -- For `snippy` users.
-    end,
-  },
-  mapping = {
-
-    ['<C-d>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    -- ['<C-e>'] = cmp.mapping.close(),
-    ['<C-l>'] = function()
-      if cmp.visible() then
-        cmp.confirm({
-        behavior = cmp.ConfirmBehavior.Replace,
-        select = true,
-      })
-    else
-      cmp.complete()
-    end
-  end,
-    ['<C-j>'] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
-    ['<C-k>'] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
-  },
-  sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
-    { name = 'vsnip' }, -- For vsnip users.
-  }, {
-    { name = 'buffer' },
-  })
-})
-
- vim.api.nvim_set_keymap('i', '<C-e>', "vsnip#jumpable(1) ? '<Plug>(vsnip-jump-next)' : '<C-e>'", { expr = true })
- vim.api.nvim_set_keymap('i', '<C-q>', "vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)': '<C-q>'", { expr = true })
- vim.api.nvim_set_keymap('s', '<C-e>', "vsnip#jumpable(1) ? '<Plug>(vsnip-jump-next)' : '<C-e>'", { expr = true })
- vim.api.nvim_set_keymap('s', '<C-q>', "vsnip#jumpable(-1) ? '<Plug>(vsnip-jump-prev)': '<C-q>'", { expr = true })
-
-
-vim.g.buftabline_numbers = 2
-vim.g.buftabline_show = 1
-
-vim.cmd[[augroup BufTabline
-autocmd!
-autocmd Colorscheme * hi BufTabLineCurrent ctermfg=167 ctermbg=none guifg=#85CC66 guibg=none
-autocmd Colorscheme * hi BufTabLineActive ctermfg=167 ctermbg=none guifg=#428822 guibg=none
-autocmd Colorscheme * hi BufTabLineFill ctermfg=167 ctermbg=none guifg=none guibg=none
-autocmd Colorscheme * hi BufTabLineHidden ctermfg=167 ctermbg=none guifg=none guibg=none
-augroup END
-]]
-
-vim.g.loaded_matchit = 1
-vim.g.matchup_matchparen_offscreen = {['method']= 'popup'}
-
-
-
-
-
-
-vim.g.move_key_modifier = 'C'
-
-
-
-local opts_commented = {
-  comment_padding = " ", -- padding between starting and ending comment symbols
-  keybindings = {n = "gcc", v = "gc", nl = "gcc"}, -- what key to toggle comment, nl is for mapping <leader>c$, just like dd for d
-  prefer_block_comment = false, -- Set it to true to automatically use block comment when multiple lines are selected
-  set_keybindings = true, -- whether or not keybinding is set on setup
-  ex_mode_cmd = "Comment" -- command for commenting in ex-mode, set it null to not set the command initially.
+nvim_lsp.rls.setup {
+	capabilities = capabilities,
+	on_attach = on_attach,
+	settings = {
+		rust = {
+			unstable_features = true,
+			build_on_save = false,
+			all_features = true,
+		},
+	},
 }
 
-require('commented').setup(opts_commented)
+-- setup golang lsp
+nvim_lsp.gopls.setup({
+	cmd = { 'gopls' },
+	capabilities = capabilities,
+	on_attach = on_attach,
+})
+
+opt.completeopt = "menuone,noselect"
+
+local npairs = require('nvim-autopairs')
+npairs.setup({
+	check_ts = true,
+	fast_wrap = {
+		map = '<M-e>',
+		chars = { '{', '[', '(', '"', "'" },
+		pattern = string.gsub([[ [%'%"%)%>%]%)%}%,] ]], '%s+', ''),
+		offset = 0, -- Offset from pattern match
+		end_key = '$',
+		keys = 'jkhlfnpasdw',
+		check_comma = true,
+		highlight = 'Search',
+		highlight_grey = 'Comment'
+	},
+})
+
+g.loaded_matchit = 1
+g.matchup_matchparen_offscreen = { ['method'] = 'popup' }
 
 
-require("dapui").setup()
+g.move_key_modifier = 'C'
+g.move_key_modifier_visualmode = 'C'
 
-
+require('Comment').setup()
 
 local dap = require('dap')
 dap.adapters.lldb = {
-  type = 'executable',
-  command = '/usr/bin/lldb-vscode', -- adjust as needed
-  name = "lldb"
+	type = 'executable',
+	command = '/usr/bin/lldb-vscode', -- adjust as needed
+	name = "lldb"
 }
 
 dap.configurations.cpp = {
-  {
-    name = "Launch",
-    type = "lldb",
-    request = "launch",
-    program = function()
-      return vim.fn.input(vim.fn.getcwd() .. '/', 'build/examples/terror-em-sl/TerrorEmSL')
-    end,
-    cwd = '${workspaceFolder}',
-    stopOnEntry = false,
-    args = {},
-    runInTerminal = false,
-  },
+	{
+		name = "Launch",
+		type = "lldb",
+		request = "launch",
+		program = function()
+			if not vim.g.dap_executable then
+				vim.g.dap_executable = vim.fn.input(
+					"Path to executable: ",
+					vim.fn.getcwd() .. "/",
+					"file")
+			end
+			return vim.g.dap_executable
+		end,
+		cwd = '${workspaceFolder}',
+		stopOnEntry = false,
+		args = function()
+			if not vim.g.dap_args then
+				local str = vim.fn.input("args: ")
+				vim.g.dap_args = vim.fn.split(str)
+			end
+			return vim.g.dap_args
+		end,
+		runInTerminal = false,
+	},
 }
 -- If you want to use this for rust and c, add something like this:
 dap.configurations.c = dap.configurations.cpp
 dap.configurations.rust = dap.configurations.cpp
-set_keymap('n', "<leader>x", ":lua require('dap.ui.widgets').hover()<CR>", opts)
-set_keymap('n', "<leader>s", ":lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').scopes)<CR>", opts)
-set_keymap('n', "<leader>c", ":lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').frames)<CR>", opts)
-set_keymap('n', "<F5>", ":lua require'dap'.continue()<CR>", opts)
-set_keymap('n', "<leader><CR>", ":lua require'dap'.run_to_cursor()<CR>", opts)
-set_keymap('n', "<F2>", ":lua require'dap'.step_over()<CR>", opts)
-set_keymap('n', "<F3>", ":lua require'dap'.step_into()<CR>", opts)
-set_keymap('n', "<leader>b", ":lua require'dap'.toggle_breakpoint()<CR>", opts)
-set_keymap('n', "<leader>rr", ":lua require'dap'.repl.toggle()<CR>", opts)
-set_keymap('n', "<leader><Esc>", ":lua local d = require'dap'; d.disconnect(); d.close()<CR>", opts)
+set_keymap('n', "<leader>x", ":lua require('dap.ui.widgets').hover()<CR>")
+set_keymap('n', "<leader>st", ":lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').scopes)<CR>")
+set_keymap('n', "<leader>c", ":lua require('dap.ui.widgets').centered_float(require('dap.ui.widgets').frames)<CR>")
+set_keymap('n', "<F5>", ":lua require'dap'.continue()<CR>")
+set_keymap('n', "<leader><CR>", ":lua require'dap'.run_to_cursor()<CR>")
+set_keymap('n', "<F2>", ":lua require'dap'.step_over()<CR>")
+set_keymap('n', "<F3>", ":lua require'dap'.step_into()<CR>")
+set_keymap('n', "<leader>b", ":lua require'dap'.toggle_breakpoint()<CR>")
+set_keymap('n', "<leader>B", ":lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>")
+-- set_keymap('n', "<leader>rr", ":lua require'dap'.repl.toggle()<CR>")
+set_keymap('n', "<leader><Esc>", ":lua local d = require'dap'; d.disconnect(); d.close()<CR>")
+set_keymap('n', "<leader><C-i>", ":lua vim.lsp.inlay_hint(0)<CR>")
 
+require("dapui").setup()
 
+g.better_escape_shortcut = { 'jk', 'jj', 'kj' }
 
-vim.g.better_escape_shortcut = {'jk', 'jj', 'kj'}
+-- g.fzf_preview_window = { 'right:40%', 'ctrl-p' }
+g.fzf_layout = { ['down'] = '45%' }
 
+set_keymap('n', '<leader>o', ':GFiles<CR>')
+set_keymap('n', '<leader>O', ':Files<CR>')
+set_keymap('n', '<leader>f', ':Rg<CR>')
+set_keymap('n', '<leader>a', ':Buffers<CR>')
+set_keymap('n', '<leader>h', ':History<CR>')
 
+local gitsigns = require('gitsigns');
 
+gitsigns.setup { signs       = {
+	add          = { hl = 'GitSignsAdd', text = '│', numhl = 'GitSignsAddNr', linehl = 'GitSignsAddLn' },
+	change       = {
+		hl = 'GitSignsChange',
+		text = '│',
+		numhl = 'GitSignsChangeNr',
+		linehl = 'GitSignsChangeLn'
+	},
+	delete       = {
+		hl = 'GitSignsDelete',
+		text = '_',
+		numhl = 'GitSignsDeleteNr',
+		linehl = 'GitSignsDeleteLn'
+	},
+	topdelete    = {
+		hl = 'GitSignsDelete',
+		text = '‾',
+		numhl = 'GitSignsDeleteNr',
+		linehl = 'GitSignsDeleteLn'
+	},
+	changedelete = {
+		hl = 'GitSignsChange',
+		text = '~',
+		numhl = 'GitSignsChangeNr',
+		linehl = 'GitSignsChangeLn'
+	},
+},
+	signcolumn                   = true, -- Toggle with `:Gitsigns toggle_signs`
+	numhl                        = false, -- Toggle with `:Gitsigns toggle_numhl`
+	linehl                       = false, -- Toggle with `:Gitsigns toggle_linehl`
+	word_diff                    = false, -- Toggle with `:Gitsigns toggle_word_diff`
+	watch_gitdir                 = {
+		interval = 1000,
+		follow_files = true
+	},
+	attach_to_untracked          = true,
+	current_line_blame           = false, -- Toggle with `:Gitsigns toggle_current_line_blame`
+	current_line_blame_opts      = {
+		virt_text = true,
+		virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
+		delay = 1000,
+		ignore_whitespace = false,
+	},
+	current_line_blame_formatter = '<author>, <author_time:%Y-%m-%d> - <summary>',
+	sign_priority                = 6,
+	update_debounce              = 100,
+	status_formatter             = nil, -- Use default
+	max_file_length              = 40000, -- Disable if file is longer than this (in lines)
+	preview_config               = {
+		-- Options passed to nvim_open_win
+		border = 'none',
+		style = 'minimal',
+		relative = 'cursor',
+		row = 0,
+		col = 1
+	},
+	yadm                         = {
+		enable = false
+	},
 
-require'fzf_lsp'.setup()
+	on_attach                    = function(bufnr)
+		local gs = package.loaded.gitsigns
 
+		local function map(mode, l, r, opts)
+			opts = opts or {}
+			opts.buffer = bufnr
+			vim.keymap.set(mode, l, r, opts)
+		end
 
+		-- Navigation
+		map('n', 'gn', function()
+			if vim.wo.diff then return 'gn' end
+			vim.schedule(function() gs.next_hunk() end)
+			return '<Ignore>'
+		end, { expr = true })
 
+		map('n', 'gN', function()
+			if vim.wo.diff then return 'gN' end
+			vim.schedule(function() gs.prev_hunk() end)
+			return '<Ignore>'
+		end, { expr = true })
 
-vim.g.fzf_preview_window = {'down:50%', 'ctrl-p'}
-vim.g.fzf_layout = { ['window']= { ['width']= 0.9, ['height']= 0.9 } }
-vim.api.nvim_exec("command! -bang -nargs=* Rg"..
-" call fzf#vim#grep("..
-"'rg --column --line-number --no-heading --color=always --smart-case --no-ignore-vcs --no-ignore -S -g !.git -g !node_modules -g !go.mod -g !go.sum '.shellescape(<q-args>), 1,"..
-"fzf#vim#with_preview({'options': ['--bind=alt-k:preview-up,alt-j:preview-down', '--preview-window=bottom', '--info=inline', '--preview=\"ccat --color=always {}\"']}), <bang>0)", '')
+		-- Actions
+		map({ 'n', 'v' }, '<leader>hs', ':Gitsigns stage_hunk<CR>')
+		map({ 'n', 'v' }, '<leader>hr', ':Gitsigns reset_hunk<CR>')
+		map('n', '<leader>hS', gs.stage_buffer)
+		map('n', '<leader>hR', gs.reset_buffer)
+		map('n', '<leader>hu', gs.undo_stage_hunk)
+		map('n', 'gs', gs.preview_hunk)
+		map('n', '<leader>hb', function() gs.blame_line { full = true } end)
+		-- map('n', '<leader>tb', gs.toggle_current_line_blame)
+		map('n', '<leader>hd', gs.diffthis)
+		map('n', '<leader>hD', function() gs.diffthis('~') end)
+		map('n', '<leader>hh', gs.toggle_deleted)
 
-set_keymap('n', '<leader>o', ':Files<CR>', opts )
-set_keymap('n', '<leader>f', ':Rg<CR>', opts)
-set_keymap('n', '<leader>a', ':Buffers<CR>', opts)
-set_keymap('n', '<leader>m', ':History<CR>', opts)
+		-- Text object
+		map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+	end
 
-vim.g.signify_sign_add = "▏"
-vim.g.signify_sign_change = "▏"
--- keybind.bind_command(edit_mode.NORMAL, "gs", ":SignifyHunkDiff<CR>", { noremap = true })
-set_keymap('n', 'gs', ':SignifyHunkDiff<CR>', opts)
-
-
-require'nvim-treesitter.configs'.setup {
-  -- One of "all", "maintained" (parsers with maintainers), or a list of languages
-  ensure_installed = "maintained",
-  -- Install languages synchronously (only applied to `ensure_installed`)
-  sync_install = false,
-
-  -- List of parsers to ignore installing
-  ignore_install = { "javascript" },
-
-  highlight = {
-    -- `false` will disable the whole extension
-    enable = true,
-
-    -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-    -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-    -- Using this option may slow down your editor, and you may see some duplicate highlights.
-    -- Instead of true it can also be a list of languages
-    additional_vim_regex_highlighting = false,
-  },
-
-  matchup = {
-    enable = true,              -- mandatory, false will disable the whole extension
-    disable_virtual_text = false,
-    -- [options]
-  },
-
-  indent = {
-    enable = true
-  },
 
 }
 
-require("nvim-dap-virtual-text").setup {
-    enabled = true,                     -- enable this plugin (the default)
-    enabled_commands = true,            -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
-    highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
-    highlight_new_as_changed = false,   -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
-    show_stop_reason = true,            -- show stop reason when stopped for exceptions
-    commented = false,                  -- prefix virtual text with comment string
-    -- experimental features:
-    virt_text_pos = 'eol',              -- position of virtual text, see `:h nvim_buf_set_extmark()`
-    all_frames = false,                 -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
-    virt_lines = false,                 -- show virtual lines instead of virtual text (will flicker!)
-    virt_text_win_col = nil             -- position the virtual text at a fixed window column (starting from the first text column) ,
-                                        -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
-}
 
-require('iswap').setup{
-  -- The keys that will be used as a selection, in order
-  -- ('asdfghjklqwertyuiopzxcvbnm' by default)
-  keys = 'qwertyuiop',
+-- require("nvim-dap-virtual-text").setup {
+-- 	enabled = true,              -- enable this plugin (the default)
+-- 	enabled_commands = true,     -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
+-- 	highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
+-- 	highlight_new_as_changed = false, -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
+-- 	show_stop_reason = true,     -- show stop reason when stopped for exceptions
+-- 	commented = false,           -- prefix virtual text with comment string
+-- 	-- experimental features:
+-- 	virt_text_pos = 'eol',       -- position of virtual text, see `:h nvim_buf_set_extmark()`
+-- 	all_frames = false,          -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
+-- 	virt_lines = false,          -- show virtual lines instead of virtual text (will flicker!)
+-- 	virt_text_win_col = nil      -- position the virtual text at a fixed window column (starting from the first text column) ,
+-- 	-- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
+-- }
 
-  -- Grey out the rest of the text when making a selection
-  -- (enabled by default)
-  -- grey = 'disable',
+-- Define my note location
+-- g.nv_search_paths = { '~/Notes/Notes' }
+-- set_keymap('n', "<leader>.", "<cmd>NV<CR>")
 
-  -- Highlight group for the sniping value (asdf etc.)
-  -- default 'Search'
-  hl_snipe = 'ErrorMsg',
+-- g.markdown_fenced_languages = { 'go=go', 'coffee', 'css', 'erb=eruby', 'javascript', 'js=javascript', 'json=javascript',
+-- 	'ruby', 'sass', 'xml' }
 
-  -- Highlight group for the visual selection of terms
-  -- default 'Visual'
-  hl_selection = 'WarningMsg',
+-- Disable annoying folding
+-- g.vim_markdown_folding_disabled = 1
 
-  -- Highlight group for the greyed background
-  -- default 'Comment'
-  hl_grey = 'LineNr',
+require("symbols-outline").setup({
+	autofold_depth = 0,
+	auto_unfold_hover = false,
+});
 
-  -- Automatically swap with only two arguments
-  -- default nil
-  autoswap = true
-}
+set_keymap('n', "<leader>q", "<cmd>SymbolsOutline<CR>")
 
-set_keymap('n', "<leader>i", "<cmd>ISwap<CR>", opts)
-set_keymap('n', "<leader>I", "<cmd>ISwapWith<CR>", opts)
+-- require 'nvim-treesitter.configs'.setup {
+-- 	-- A list of parser names, or "all" (the four listed parsers should always be installed)
+-- 	disable = function() return vim.b.large_buf end,
+-- 	ensure_installed = { "c", "lua", "vim", "cpp", "rust", "hare" },
+--
+-- 	-- Install parsers synchronously (only applied to `ensure_installed`)
+-- 	sync_install = false,
+--
+-- 	-- Automatically install missing parsers when entering buffer
+-- 	-- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+-- 	auto_install = true,
+--
+-- 	-- List of parsers to ignore installing (for "all")
+-- 	ignore_install = { "javascript" },
+--
+-- 	---- If you need to change the installation directory of the parsers (see -> Advanced Setup)
+-- 	-- parser_install_dir = "/some/path/to/store/parsers", -- Remember to run vim.opt.runtimepath:append("/some/path/to/store/parsers")!
+--
+-- 	highlight = {
+-- 		-- `false` will disable the whole extension
+-- 		enable = true,
+-- 		disable = function() return vim.b.large_buf end,
+-- 		-- Instead of true it can also be a list of languages
+-- 		additional_vim_regex_highlighting = false,
+-- 	},
+-- }
+
+-- require('iswap').setup {
+-- 	-- The keys that will be used as a selection, in order
+-- 	-- ('asdfghjklqwertyuiopzxcvbnm' by default)
+-- 	keys = 'qwertyuiop',
+--
+-- 	-- Grey out the rest of the text when making a selection
+-- 	-- (enabled by default)
+-- 	grey = 'disable',
+--
+-- 	-- Highlight group for the sniping value (asdf etc.)
+-- 	-- default 'Search'
+-- 	hl_snipe = 'ErrorMsg',
+--
+-- 	-- Highlight group for the visual selection of terms
+-- 	-- default 'Visual'
+-- 	hl_selection = 'WarningMsg',
+--
+-- 	-- Highlight group for the greyed background
+-- 	-- default 'Comment'
+-- 	hl_grey = 'LineNr',
+--
+-- 	-- Post-operation flashing highlight style,
+-- 	-- either 'simultaneous' or 'sequential', or false to disable
+-- 	-- default 'sequential'
+-- 	flash_style = false,
+--
+-- 	-- Highlight group for flashing highlight afterward
+-- 	-- default 'IncSearch'
+-- 	hl_flash = 'ModeMsg',
+--
+-- 	-- Move cursor to the other element in ISwap*With commands
+-- 	-- default false
+-- 	move_cursor = true,
+--
+-- 	-- Automatically swap with only two arguments
+-- 	-- default nil
+-- 	autoswap = true,
+--
+-- 	-- Other default options you probably should not change:
+-- 	debug = nil,
+-- 	hl_grey_priority = '1000',
+-- }
+
+-- set_keymap('n', "<leader>i", ":ISwapWith<CR>")
+-- set_keymap('n', "<leader>I", ":ISwap<CR>")
+
+-- require 'treesitter-context'.setup {
+-- 	enable = true,     -- Enable this plugin (Can be enabled/disabled later via commands)
+-- 	max_lines = 0,     -- How many lines the window should span. Values <= 0 mean no limit.
+-- 	min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+-- 	line_numbers = true,
+-- 	multiline_threshold = 20, -- Maximum number of lines to collapse for a single context line
+-- 	trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+-- 	mode = 'cursor',   -- Line used to calculate context. Choices: 'cursor', 'topline'
+-- 	-- Separator between context and content. Should be a single character string, like '-'.
+-- 	-- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+-- 	separator = nil,
+-- 	zindex = 20, -- The Z-index of the context window
+-- }
+
+-- require("sg").setup {
+-- 	-- Pass your own custom attach function
+-- 	--    If you do not pass your own attach function, then the following maps are provide:
+-- 	--        - gd -> goto definition
+-- 	--        - gr -> goto references
+-- 	on_attach = on_attach
+-- }

@@ -20,3 +20,4 @@ export PATH=$PATH:$HOME/.local/bin/:$HOME/.cargo/bin
 export HISTTIMEFORMAT="%d/%m/%y %T "
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+. "$HOME/.cargo/env"
